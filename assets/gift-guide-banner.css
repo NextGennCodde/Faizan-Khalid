@@ -54,6 +54,8 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  /* source SVGs are ordered VISON then TISSO; reverse so it reads "TISSO VISON" */
+  flex-direction: row-reverse;
 }
 
 .gift-banner__logo svg {
