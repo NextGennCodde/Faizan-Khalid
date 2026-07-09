@@ -436,6 +436,11 @@
   cursor: not-allowed;
 }
 
+/* brief "Added to cart" confirmation state */
+.ggrid__atc.is-added {
+  cursor: default;
+}
+
 .ggrid__atc.is-loading {
   opacity: 0.7;
   cursor: progress;

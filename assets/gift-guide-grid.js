@@ -27,25 +27,14 @@ class GiftGuideGrid extends HTMLElement {
     this._onKeydown = this._onKeydown.bind(this);
     this._onDocClick = this._onDocClick.bind(this);
 
-    const hotspots = this.querySelectorAll('.ggrid__hotspot');
-    const popups = this.querySelectorAll('.ggrid__popup');
-    console.log('[GiftGuideGrid] connected', {
-      id: this.id,
-      cartAddUrl: this.cartAddUrl,
-      hotspots: hotspots.length,
-      popups: popups.length,
-      autoAdd: this.autoAdd,
-    });
-
-    hotspots.forEach((btn) => {
+    this.querySelectorAll('.ggrid__hotspot').forEach((btn) => {
       btn.addEventListener('click', () => {
         const popup = document.getElementById(btn.getAttribute('aria-controls'));
-        console.log('[GiftGuideGrid] hotspot clicked ->', btn.getAttribute('aria-controls'), !!popup);
         if (popup) this.open(popup, btn);
       });
     });
 
-    popups.forEach((popup) => this._setupPopup(popup));
+    this.querySelectorAll('.ggrid__popup').forEach((popup) => this._setupPopup(popup));
   }
 
   /* ---------- Popup wiring ---------- */
@@ -53,10 +42,6 @@ class GiftGuideGrid extends HTMLElement {
     const data = this._readJSON(popup.querySelector('[data-ggrid-product]')) || { variants: [] };
     const state = { data: data, selections: {}, variant: null };
     popup._gg = state;
-    console.log('[GiftGuideGrid] popup setup', popup.id, {
-      variantCount: (data.variants || []).length,
-      firstVariant: (data.variants || [])[0],
-    });
 
     popup.querySelectorAll('[data-ggrid-close]').forEach((el) =>
       el.addEventListener('click', () => this.close())
@@ -115,17 +100,7 @@ class GiftGuideGrid extends HTMLElement {
 
     // Add to cart
     const atc = popup.querySelector('[data-ggrid-atc]');
-    if (atc) {
-      atc.addEventListener('click', () => {
-        console.log('[GiftGuideGrid] ADD TO CART clicked', {
-          selections: { ...state.selections },
-          resolvedVariant: state.variant,
-        });
-        this._addToCart(popup);
-      });
-    } else {
-      console.warn('[GiftGuideGrid] no [data-ggrid-atc] button found in popup', popup.id);
-    }
+    if (atc) atc.addEventListener('click', () => this._addToCart(popup));
   }
 
   // Select a colour swatch: move the sliding indicator + update state.
@@ -210,10 +185,6 @@ class GiftGuideGrid extends HTMLElement {
 
     // Not all options chosen yet → nudge the shopper to the size dropdown.
     if (!state.variant) {
-      console.warn('[GiftGuideGrid] no variant resolved — nudging size dropdown', {
-        selections: { ...state.selections },
-        variants: state.data && state.data.variants,
-      });
       const select = popup.querySelector('[data-ggrid-select]:not(.is-open)');
       if (select) {
         select.classList.add('is-open');
@@ -226,9 +197,6 @@ class GiftGuideGrid extends HTMLElement {
     // active (per the Figma) and we let Shopify's Ajax API be the source of
     // truth. If a variant is genuinely unpurchasable, /cart/add.js returns a
     // 422 and the catch block surfaces the message.
-    if (!state.variant.available) {
-      console.warn('[GiftGuideGrid] variant reports available:false — attempting anyway', state.variant);
-    }
 
     const items = [{ id: state.variant.id, quantity: 1 }];
 
@@ -241,44 +209,33 @@ class GiftGuideGrid extends HTMLElement {
       items.push({ id: this.autoAdd.id, quantity: 1 });
     }
 
-    // Mirror Dawn: include the cart notification/drawer's sections in the request.
+    // Request the cart notification's sections so it can render (Dawn cart_type:
+    // notification). Fall back to the known section ids if the element's helper
+    // isn't available yet.
     const cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer');
     const sections = ['cart-icon-bubble'];
     if (cart && typeof cart.getSectionsToRender === 'function') {
       cart.getSectionsToRender().forEach((s) => {
         if (s.id && sections.indexOf(s.id) === -1) sections.push(s.id);
       });
-      if (typeof cart.setActiveElement === 'function') cart.setActiveElement(document.activeElement);
+    } else {
+      sections.push('cart-notification-product', 'cart-notification-button');
     }
-
-    const payload = { items: items, sections: sections, sections_url: window.location.pathname };
-    console.log('[GiftGuideGrid] POST', this.cartAddUrl, payload);
+    if (cart && typeof cart.setActiveElement === 'function') cart.setActiveElement(document.activeElement);
 
     atc.classList.add('is-loading');
     try {
       const res = await fetch(this.cartAddUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ items: items, sections: sections, sections_url: window.location.pathname }),
       });
       const json = await res.json();
-      console.log('[GiftGuideGrid] response', res.status, json);
       if (!res.ok || json.status) {
         throw new Error(json.description || json.message || 'Cart add failed: ' + res.status);
       }
 
       this._refreshCartBubble(json.sections);
-      this.close();
-
-      // Trigger the theme's cart notification / drawer exactly like product-form.js.
-      if (cart && typeof cart.renderContents === 'function') {
-        if (json.items && json.key == null) json.key = json.items[0] && json.items[0].key;
-        try {
-          cart.renderContents(json);
-        } catch (e) {
-          /* notification is best-effort; the item is already in the cart */
-        }
-      }
       if (typeof publish === 'function' && window.PUB_SUB_EVENTS && window.PUB_SUB_EVENTS.cartUpdate) {
         publish(window.PUB_SUB_EVENTS.cartUpdate, {
           source: 'gift-guide-grid',
@@ -286,8 +243,30 @@ class GiftGuideGrid extends HTMLElement {
           cartData: json,
         });
       }
+
+      // Visual confirmation on the button, then reset it.
+      const label = popup.querySelector('[data-ggrid-atc-label]');
+      const prevLabel = label ? label.textContent : '';
+      if (label) label.textContent = 'Added to cart';
+      atc.classList.add('is-added');
+
       const extra = items.length > 1 ? ' The ' + this.autoAdd.title + ' was added too.' : '';
       this._announce('Added to your cart.' + extra);
+
+      // After a short beat: close the popup, pop the cart notification, reset button.
+      window.setTimeout(() => {
+        this.close();
+        if (cart && typeof cart.renderContents === 'function') {
+          if (json.items && json.key == null) json.key = json.items[0] && json.items[0].key;
+          try {
+            cart.renderContents(json);
+          } catch (e) {
+            /* notification is best-effort; the item is already in the cart */
+          }
+        }
+        if (label) label.textContent = prevLabel;
+        atc.classList.remove('is-added');
+      }, 900);
     } catch (err) {
       this._announce((err && err.message) || 'Sorry, something went wrong. Please try again.');
       if (window.console) console.error('[GiftGuideGrid] add to cart failed', err, { items: items });
