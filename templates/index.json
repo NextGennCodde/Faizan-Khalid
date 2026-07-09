@@ -33,16 +33,66 @@
     "gift_guide_grid": {
       "type": "gift-guide-grid",
       "blocks": {
-        "product_1": { "type": "product", "settings": { "hotspot_horizontal": 59, "hotspot_vertical": 54 } },
-        "product_2": { "type": "product", "settings": { "hotspot_horizontal": 82, "hotspot_vertical": 50 } },
-        "product_3": { "type": "product", "settings": { "hotspot_horizontal": 60, "hotspot_vertical": 18 } },
-        "product_4": { "type": "product", "settings": { "hotspot_horizontal": 70, "hotspot_vertical": 16 } },
-        "product_5": { "type": "product", "settings": { "hotspot_horizontal": 49, "hotspot_vertical": 23 } },
-        "product_6": { "type": "product", "settings": { "hotspot_horizontal": 74, "hotspot_vertical": 37 } }
+        "product_1": {
+          "type": "product",
+          "settings": {
+            "product": "black-leather-bag",
+            "hotspot_horizontal": 59,
+            "hotspot_vertical": 54
+          }
+        },
+        "product_2": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo",
+            "hotspot_horizontal": 82,
+            "hotspot_vertical": 50
+          }
+        },
+        "product_3": {
+          "type": "product",
+          "settings": {
+            "product": "chequered-red-shirt",
+            "hotspot_horizontal": 60,
+            "hotspot_vertical": 18
+          }
+        },
+        "product_4": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket",
+            "hotspot_horizontal": 70,
+            "hotspot_vertical": 16
+          }
+        },
+        "product_5": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top",
+            "hotspot_horizontal": 49,
+            "hotspot_vertical": 23
+          }
+        },
+        "product_6": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top",
+            "hotspot_horizontal": 74,
+            "hotspot_vertical": 37
+          }
+        }
       },
-      "block_order": ["product_1", "product_2", "product_3", "product_4", "product_5", "product_6"],
+      "block_order": [
+        "product_1",
+        "product_2",
+        "product_3",
+        "product_4",
+        "product_5",
+        "product_6"
+      ],
       "settings": {
-        "heading": "Tisso vison in the wild"
+        "heading": "Tisso vison in the wild",
+        "auto_add_product": ""
       }
     }
   },
