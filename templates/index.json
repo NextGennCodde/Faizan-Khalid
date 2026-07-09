@@ -11,40 +11,23 @@
   "sections": {
     "gift_guide_banner": {
       "type": "gift-guide-banner",
-      "settings": {}
-    },
-    "featured_collection": {
-      "type": "featured-collection",
-      "disabled": true,
       "settings": {
-        "collection": "all",
-        "products_to_show": 8,
-        "title": "Featured products",
-        "heading_size": "h2",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "columns_desktop": 4,
-        "enable_desktop_slider": false,
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "solid",
-        "color_scheme": "scheme-1",
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "2",
-        "swipe_on_mobile": false,
-        "padding_top": 44,
-        "padding_bottom": 36
+        "logo_text": "Tisso Vison",
+        "show_hamburger": true,
+        "message": "Find the ideal gift for your loved ones.",
+        "choose_label": "Choose Gift",
+        "choose_link": "",
+        "heading": "The Gift Guide",
+        "description": "<p>Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
+        "description_mobile": "<p>Discover Joy: Your Ultimate Holiday Gift Destination.</p>",
+        "shop_label": "Shop Now",
+        "shop_link": "",
+        "strip_text": "Sustainable, ethically made clothes in sizes XXS to 6XL",
+        "strip_text_mobile": "Sustainable, ethically made activewear"
       }
     }
   },
   "order": [
-    "gift_guide_banner",
-    "featured_collection"
+    "gift_guide_banner"
   ]
 }
