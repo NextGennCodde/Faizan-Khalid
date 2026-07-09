@@ -9,6 +9,10 @@
  */
 {
   "sections": {
+    "gift_guide_banner": {
+      "type": "gift-guide-banner",
+      "settings": {}
+    },
     "featured_collection": {
       "type": "featured-collection",
       "disabled": true,
@@ -40,6 +44,7 @@
     }
   },
   "order": [
+    "gift_guide_banner",
     "featured_collection"
   ]
 }
