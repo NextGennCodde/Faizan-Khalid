@@ -149,6 +149,9 @@
 /* ---------- SHOP NOW / CHOOSE GIFT button ---------- */
 .gift-banner__btn {
   pointer-events: auto;
+  position: relative;
+  overflow: hidden; /* clip the wipe overlay to the button box */
+  isolation: isolate; /* keep the ::before fill scoped behind the label only */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -167,7 +170,22 @@
   background: #000;
   color: #f5f5f5;
   box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  /* label + shadow ease together; the fill itself is animated on ::before */
+  transition: color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* The required animation (Figma Group 1000007810): a yellow fill that wipes
+   left -> right, growing from width 0 to 100% on hover. scaleX from a left
+   origin is the GPU-friendly equivalent of animating width 0 -> 100%. */
+.gift-banner__btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--gb-yellow);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s ease;
 }
 
 .gift-banner__btn-arrow {
@@ -185,10 +203,14 @@
   height: 100%;
 }
 
-/* The required hover animation: black -> yellow swap + drop shadow */
+/* Hover/focus: run the wipe, flip the label to black, add the drop shadow */
+.gift-banner__btn:hover::before,
+.gift-banner__btn:focus-visible::before {
+  transform: scaleX(1);
+}
+
 .gift-banner__btn:hover,
 .gift-banner__btn:focus-visible {
-  background: var(--gb-yellow);
   color: #000;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
   outline: none;
@@ -360,6 +382,14 @@
 
   .gift-banner__strip-text--mobile {
     display: none;
+  }
+}
+
+/* Respect reduced-motion: the fill still appears on hover, just without the sweep */
+@media (prefers-reduced-motion: reduce) {
+  .gift-banner__btn,
+  .gift-banner__btn::before {
+    transition: none;
   }
 }
 
