@@ -1,0 +1,164 @@
+{%- comment -%} Jost (300/400/500) + Lustria for the grid heading and popup price {%- endcomment -%}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lustria&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lustria&display=swap"></noscript>
+
+{{ 'gift-guide-grid.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'gift-guide-grid.js' | asset_url }}" defer="defer"></script>
+
+{%- comment -%}
+  Gift Guide Grid (Figma frame ~1337x981) — Section 2.
+  A 3x2 (desktop) / 2-col (mobile) shoppable grid. Each tile is a merchant-
+  picked product with a movable "+" hotspot that opens a product quick-shop
+  popup. Variants render dynamically from product data; Add to Cart posts to
+  the Ajax API. Business rule: any variant whose options include BOTH "Black"
+  and "Medium" also auto-adds the section's auto-add product to the cart.
+  Vanilla JS only (assets/gift-guide-grid.js).
+{%- endcomment -%}
+
+{%- liquid
+  assign heading = section.settings.heading
+  assign auto_add = section.settings.auto_add_product
+-%}
+
+<gift-guide-grid
+  class="ggrid"
+  id="ggrid-{{ section.id }}"
+  data-cart-add-url="{{ routes.cart_add_url }}"
+>
+  {%- if heading != blank -%}
+    <h2 class="ggrid__heading">{{ heading | escape }}</h2>
+  {%- endif -%}
+
+  <div class="ggrid__grid">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign product = block.settings.product
+        assign tile_image = block.settings.image | default: product.featured_image
+        assign popup_id = 'ggpopup-' | append: section.id | append: '-' | append: block.id
+      -%}
+      <div class="ggrid__tile" {{ block.shopify_attributes }}>
+        {%- if tile_image -%}
+          <img
+            class="ggrid__tile-img"
+            src="{{ tile_image | image_url: width: 880 }}"
+            srcset="{{ tile_image | image_url: width: 440 }} 440w, {{ tile_image | image_url: width: 880 }} 880w"
+            sizes="(min-width: 750px) 33vw, 50vw"
+            width="{{ tile_image.width }}"
+            height="{{ tile_image.height }}"
+            alt="{{ product.title | default: block.settings.image.alt | escape }}"
+            loading="lazy"
+          >
+        {%- else -%}
+          <div class="ggrid__tile-img ggrid__tile-img--placeholder">
+            {{ 'product-apparel-1' | placeholder_svg_tag: 'ggrid__placeholder' }}
+          </div>
+        {%- endif -%}
+
+        {%- if product != blank -%}
+          <button
+            type="button"
+            class="ggrid__hotspot"
+            style="--hx: {{ block.settings.hotspot_horizontal }}%; --hy: {{ block.settings.hotspot_vertical }}%;"
+            aria-haspopup="dialog"
+            aria-controls="{{ popup_id }}"
+            aria-label="{{ 'products.product.view_product' | t | default: 'Quick view' }}: {{ product.title | escape }}"
+          >
+            {%- render 'gift-grid-icon', icon: 'plus' -%}
+          </button>
+
+          {%- render 'gift-grid-popup', product: product, popup_id: popup_id -%}
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  </div>
+
+  {%- comment -%} Section-level auto-add product (e.g. "Soft Winter Jacket") for the Black+Medium rule {%- endcomment -%}
+  <script type="application/json" class="ggrid__autoadd" data-ggrid-autoadd>
+    {%- if auto_add != blank -%}
+      {%- assign aa_variant = auto_add.selected_or_first_available_variant -%}
+      {"id": {{ aa_variant.id }}, "title": {{ auto_add.title | json }}, "available": {{ aa_variant.available }}}
+    {%- else -%}
+      null
+    {%- endif -%}
+  </script>
+
+  <p class="ggrid__sr-status visually-hidden" aria-live="polite" role="status"></p>
+</gift-guide-grid>
+
+{% schema %}
+{
+  "name": "Gift Guide Grid",
+  "tag": "section",
+  "class": "section-gift-guide-grid",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Tisso vison in the wild"
+    },
+    {
+      "type": "product",
+      "id": "auto_add_product",
+      "label": "Auto-add product",
+      "info": "Added automatically when a chosen variant includes both “Black” and “Medium”. Set this to “Soft Winter Jacket”."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image override",
+          "info": "Optional. Falls back to the product's featured image."
+        },
+        {
+          "type": "range",
+          "id": "hotspot_horizontal",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot horizontal position",
+          "default": 60
+        },
+        {
+          "type": "range",
+          "id": "hotspot_vertical",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "label": "Hotspot vertical position",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gift Guide Grid",
+      "blocks": [
+        { "type": "product", "settings": { "hotspot_horizontal": 59, "hotspot_vertical": 54 } },
+        { "type": "product", "settings": { "hotspot_horizontal": 82, "hotspot_vertical": 50 } },
+        { "type": "product", "settings": { "hotspot_horizontal": 60, "hotspot_vertical": 18 } },
+        { "type": "product", "settings": { "hotspot_horizontal": 70, "hotspot_vertical": 16 } },
+        { "type": "product", "settings": { "hotspot_horizontal": 49, "hotspot_vertical": 23 } },
+        { "type": "product", "settings": { "hotspot_horizontal": 74, "hotspot_vertical": 37 } }
+      ]
+    }
+  ]
+}
+{% endschema %}

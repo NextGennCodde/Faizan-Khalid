@@ -1,0 +1,27 @@
+{%- comment -%}
+  Inline SVG icons for the Gift Guide Grid section. currentColor throughout so
+  colours are controlled from CSS (hover/selected states).
+  Usage: {% render 'gift-grid-icon', icon: 'plus' %}
+  icons: plus | close | chevron | cart-arrow
+{%- endcomment -%}
+{%- case icon -%}
+  {%- when 'plus' -%}
+    <svg class="gg-icon gg-icon--plus" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <circle cx="11" cy="11" r="11" fill="#F8F8F8" fill-opacity="0.9"/>
+      <path d="M11.3457 7.04175V15.5033" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+      <path d="M7.11523 11.2725H15.5768" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+    </svg>
+  {%- when 'close' -%}
+    <svg class="gg-icon gg-icon--close" viewBox="0 0 13.5 13.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M6.74977 0.75V12.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+      <path d="M0.75 6.74977H12.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+    </svg>
+  {%- when 'chevron' -%}
+    <svg class="gg-icon gg-icon--chevron" viewBox="0 0 14.1213 8.12132" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M1.06066 1.06066L7.06066 7.06066L13.0607 1.06066" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+    </svg>
+  {%- when 'cart-arrow' -%}
+    <svg class="gg-icon gg-icon--cart-arrow" viewBox="0 0 35.1995 11.0459" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M0.75 4.77297H0V6.27297H0.75V5.52297V4.77297ZM34.9798 6.0533C35.2727 5.76041 35.2727 5.28553 34.9798 4.99264L30.2068 0.21967C29.9139 -0.0732236 29.4391 -0.0732236 29.1462 0.21967C28.8533 0.512563 28.8533 0.987437 29.1462 1.28033L33.3888 5.52297L29.1462 9.76561C28.8533 10.0585 28.8533 10.5334 29.1462 10.8263C29.4391 11.1192 29.9139 11.1192 30.2068 10.8263L34.9798 6.0533ZM0.75 5.52297V6.27297H34.4495V5.52297V4.77297H0.75V5.52297Z" fill="currentColor"/>
+    </svg>
+{%- endcase -%}

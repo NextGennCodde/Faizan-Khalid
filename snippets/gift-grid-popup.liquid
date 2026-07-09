@@ -1,0 +1,120 @@
+{%- comment -%}
+  Gift Guide Grid — product quick-shop popup.
+  Params: product (required), popup_id (required).
+  Variant selectors are rendered from the product's own options:
+    - the FIRST option renders as a swatch row (the "Color" style in the design)
+    - any further options render as a custom dropdown (the "Size" style)
+  A JSON blob carries the variant matrix so the JS can resolve the chosen variant.
+{%- endcomment -%}
+<div
+  class="ggrid__popup"
+  id="{{ popup_id }}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ product.title | escape }}"
+  hidden
+>
+  <div class="ggrid__overlay" data-ggrid-close tabindex="-1"></div>
+
+  <div class="ggrid__card" role="document">
+    <button type="button" class="ggrid__close" data-ggrid-close aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+      {%- render 'gift-grid-icon', icon: 'close' -%}
+    </button>
+
+    <div class="ggrid__card-top">
+      {%- if product.featured_image -%}
+        <img
+          class="ggrid__card-img"
+          src="{{ product.featured_image | image_url: width: 240 }}"
+          width="120"
+          height="140"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+          loading="lazy"
+        >
+      {%- endif -%}
+      <div class="ggrid__card-info">
+        <h3 class="ggrid__card-title">{{ product.title | escape }}</h3>
+        <p class="ggrid__card-price" data-ggrid-price>{{ product.price | money }}</p>
+        {%- if product.description != blank -%}
+          <p class="ggrid__card-desc">{{ product.description | strip_html | truncatewords: 26 }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if product.has_only_default_variant == false -%}
+      <div class="ggrid__options">
+        {%- for option in product.options_with_values -%}
+          {%- if forloop.first -%}
+            {%- comment -%} First option → swatch row {%- endcomment -%}
+            <div class="ggrid__opt ggrid__opt--swatch">
+              <span class="ggrid__opt-label" id="{{ popup_id }}-optlabel-{{ option.position }}">{{ option.name | escape }}</span>
+              <div class="ggrid__swatches" role="radiogroup" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}">
+                {%- for value in option.values -%}
+                  <button
+                    type="button"
+                    class="ggrid__swatch"
+                    role="radio"
+                    aria-checked="false"
+                    data-ggrid-swatch
+                    data-option-position="{{ option.position }}"
+                    data-value="{{ value | escape }}"
+                  >
+                    <span class="ggrid__swatch-chip" style="background: {{ value | downcase | escape }};"></span>
+                    <span class="ggrid__swatch-name">{{ value | escape }}</span>
+                  </button>
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- else -%}
+            {%- comment -%} Further options → custom dropdown {%- endcomment -%}
+            <div class="ggrid__opt ggrid__opt--select">
+              <span class="ggrid__opt-label" id="{{ popup_id }}-optlabel-{{ option.position }}">{{ option.name | escape }}</span>
+              <div class="ggrid__select" data-ggrid-select data-option-position="{{ option.position }}">
+                <button
+                  type="button"
+                  class="ggrid__select-toggle"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}"
+                >
+                  <span class="ggrid__select-value" data-ggrid-select-value>{{ 'products.product.choose' | t | default: 'Choose your' }} {{ option.name | downcase | escape }}</span>
+                  <span class="ggrid__select-caret">{%- render 'gift-grid-icon', icon: 'chevron' -%}</span>
+                </button>
+                <ul class="ggrid__select-list" role="listbox" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}" hidden>
+                  {%- for value in option.values -%}
+                    <li
+                      class="ggrid__select-option"
+                      role="option"
+                      tabindex="-1"
+                      aria-selected="false"
+                      data-value="{{ value | escape }}"
+                    >{{ value | escape }}</li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <button type="button" class="ggrid__atc" data-ggrid-atc>
+      <span class="ggrid__atc-label" data-ggrid-atc-label>{{ 'products.product.add_to_cart' | t | default: 'Add to cart' }}</span>
+      {%- render 'gift-grid-icon', icon: 'cart-arrow' -%}
+    </button>
+
+    {%- comment -%} Variant matrix for JS resolution {%- endcomment -%}
+    <script type="application/json" data-ggrid-product>
+      {
+        "id": {{ product.id }},
+        "title": {{ product.title | json }},
+        "optionCount": {{ product.options.size }},
+        "variants": [
+          {%- for v in product.variants -%}
+            {"id": {{ v.id }}, "available": {{ v.available }}, "options": {{ v.options | json }}, "priceFormatted": {{ v.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}
+          {%- endfor -%}
+        ]
+      }
+    </script>
+  </div>
+</div>
