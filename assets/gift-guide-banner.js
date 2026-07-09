@@ -15,9 +15,28 @@
     section.dataset.gbBound = 'true';
 
     function setOpen(open) {
-      section.classList.toggle(OPEN_CLASS, open);
       button.setAttribute('aria-expanded', String(open));
+      // Animate from/to the panel's real content height for a smooth, full slide.
+      if (open) {
+        menu.style.height = '0px'; // explicit start point
+        section.classList.add(OPEN_CLASS); // makes it visible for measuring
+        requestAnimationFrame(function () {
+          menu.style.height = menu.scrollHeight + 'px';
+        });
+      } else {
+        menu.style.height = menu.scrollHeight + 'px'; // from auto -> explicit px
+        menu.offsetHeight; // force reflow so the next line animates from here
+        section.classList.remove(OPEN_CLASS);
+        menu.style.height = '0px';
+      }
     }
+
+    // Once open, let the panel size to its content (handles reflow/resize).
+    menu.addEventListener('transitionend', function (event) {
+      if (event.propertyName === 'height' && section.classList.contains(OPEN_CLASS)) {
+        menu.style.height = 'auto';
+      }
+    });
 
     button.addEventListener('click', function () {
       setOpen(button.getAttribute('aria-expanded') !== 'true');

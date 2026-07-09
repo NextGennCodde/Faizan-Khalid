@@ -82,30 +82,25 @@
   transform: translateY(-6px) rotate(-45deg);
 }
 
-/* ---------- Mobile dropdown menu (Figma Group 1000008120) ---------- */
+/* ---------- Mobile dropdown menu (Figma Group 1000008120) ----------
+   Height is animated from an inline px value set by JS (menu.scrollHeight),
+   so it opens/closes smoothly and fully in every browser. visibility keeps
+   the collapsed panel out of the tab order. */
 .gift-banner__menu {
-  display: grid;
-  grid-template-rows: 0fr; /* collapsed; animates to 1fr on open */
-  transition: grid-template-rows 0.35s ease;
-  background: var(--gb-bar-bg);
+  height: 0;
   overflow: hidden;
+  visibility: hidden;
+  background: var(--gb-bar-bg);
+  transition: height 0.35s ease, visibility 0s linear 0.35s;
 }
 
 .gift-banner--menu-open .gift-banner__menu {
-  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: height 0.35s ease;
 }
 
 .gift-banner__menu-inner {
-  min-height: 0;
-  overflow: hidden;
   padding: 20px 16px 24px;
-  visibility: hidden; /* keep collapsed content out of the a11y tree + tab order */
-  transition: visibility 0s linear 0.35s;
-}
-
-.gift-banner--menu-open .gift-banner__menu-inner {
-  visibility: visible;
-  transition-delay: 0s;
 }
 
 .gift-banner__menu-message {
