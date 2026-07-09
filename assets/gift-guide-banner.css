@@ -132,12 +132,12 @@
 
 /* black wipe + white label on hover/tap, matching the header CHOOSE GIFT */
 .gift-banner__menu-choose::before {
-  background: #000;
+  background: #000 !important;
 }
 
 .gift-banner__menu-choose:hover,
 .gift-banner__menu-choose:focus-visible {
-  color: #fff;
+  color: #fff !important;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
