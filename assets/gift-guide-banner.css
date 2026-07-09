@@ -280,11 +280,16 @@
     color: #000;
   }
 
+  /* CHOOSE GIFT is yellow at rest, so its wipe fill is black (inverse of SHOP NOW) */
+  .gift-banner__choose::before {
+    background: #000;
+  }
+
+  /* Same left-to-right wipe: black fills in, label + arrow flip to white */
   .gift-banner__choose:hover,
   .gift-banner__choose:focus-visible {
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-    background: var(--gb-yellow);
-    color: #000;
+    color: #fff;
   }
 
   /* Hero is a fixed 780px stage (Figma frame 1957) with absolute art + content */
