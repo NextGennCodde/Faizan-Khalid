@@ -47,16 +47,9 @@ class GiftGuideGrid extends HTMLElement {
       el.addEventListener('click', () => this.close())
     );
 
-    // Swatch options
+    // Swatch options (colour) — the sliding indicator handles the black fill
     popup.querySelectorAll('[data-ggrid-swatch]').forEach((swatch) => {
-      swatch.addEventListener('click', () => {
-        const pos = swatch.dataset.optionPosition;
-        popup
-          .querySelectorAll('[data-ggrid-swatch][data-option-position="' + pos + '"]')
-          .forEach((s) => s.setAttribute('aria-checked', String(s === swatch)));
-        state.selections[pos] = swatch.dataset.value;
-        this._resolve(popup);
-      });
+      swatch.addEventListener('click', () => this._selectSwatch(popup, state, swatch));
     });
 
     // Custom dropdown options (animated open/close via the `is-open` class)
@@ -99,9 +92,27 @@ class GiftGuideGrid extends HTMLElement {
     // Pre-select any option that has only one possible value (keeps ATC usable).
     this._preselectSingles(popup, state);
 
+    // Pre-select the first colour swatch by default (matches the Figma).
+    popup.querySelectorAll('.ggrid__swatches').forEach((group) => {
+      const first = group.querySelector('[data-ggrid-swatch]');
+      if (first) this._selectSwatch(popup, state, first);
+    });
+
     // Add to cart
     const atc = popup.querySelector('[data-ggrid-atc]');
     if (atc) atc.addEventListener('click', () => this._addToCart(popup));
+  }
+
+  // Select a colour swatch: move the sliding indicator + update state.
+  _selectSwatch(popup, state, swatch) {
+    const group = swatch.closest('.ggrid__swatches');
+    const swatches = Array.from(group.querySelectorAll('[data-ggrid-swatch]'));
+    const index = swatches.indexOf(swatch);
+    swatches.forEach((s) => s.setAttribute('aria-checked', String(s === swatch)));
+    group.style.setProperty('--sel-index', index);
+    group.classList.add('is-selected');
+    state.selections[swatch.dataset.optionPosition] = swatch.dataset.value;
+    this._resolve(popup);
   }
 
   // Number of options, derived from the actual variant data (robust even if the
@@ -140,11 +151,12 @@ class GiftGuideGrid extends HTMLElement {
   }
 
   /* ---------- Variant resolution ---------- */
+  // Resolves the chosen variant and updates the price. The Add to Cart button
+  // stays a static black "ADD TO CART" (per the Figma) — completeness is
+  // enforced on click, not by disabling/relabelling the button.
   _resolve(popup) {
     const state = popup._gg;
     const variants = (state.data && state.data.variants) || [];
-    const atc = popup.querySelector('[data-ggrid-atc]');
-    const label = popup.querySelector('[data-ggrid-atc-label]');
     const count = this._optionCount(state);
 
     const chosen = [];
@@ -152,8 +164,7 @@ class GiftGuideGrid extends HTMLElement {
     const complete = count > 0 && chosen.every((v) => v != null);
 
     if (count === 0) {
-      // product with no options → its single variant
-      state.variant = variants[0] || null;
+      state.variant = variants[0] || null; // product with no options
     } else if (complete) {
       state.variant =
         variants.find((v) => v.options.every((opt, i) => String(opt) === String(chosen[i]))) || null;
@@ -165,30 +176,25 @@ class GiftGuideGrid extends HTMLElement {
       const price = popup.querySelector('[data-ggrid-price]');
       if (price) price.innerHTML = state.variant.priceFormatted;
     }
-
-    if (count > 0 && !complete) {
-      this._setAtc(atc, label, true, 'Select options');
-    } else if (!state.variant) {
-      this._setAtc(atc, label, true, 'Unavailable');
-    } else if (!state.variant.available) {
-      this._setAtc(atc, label, true, 'Sold out');
-    } else {
-      this._setAtc(atc, label, false, 'Add to cart');
-    }
-  }
-
-  _setAtc(atc, label, disabled, text) {
-    if (!atc) return;
-    atc.setAttribute('aria-disabled', String(disabled));
-    if (label) label.textContent = text;
   }
 
   /* ---------- Add to cart ---------- */
   async _addToCart(popup) {
     const state = popup._gg;
     const atc = popup.querySelector('[data-ggrid-atc]');
-    if (!state.variant || !state.variant.available || atc.getAttribute('aria-disabled') === 'true') {
-      this._announce('Please choose all options.');
+
+    // Not all options chosen yet → nudge the shopper to the size dropdown.
+    if (!state.variant) {
+      const select = popup.querySelector('[data-ggrid-select]:not(.is-open)');
+      if (select) {
+        select.classList.add('is-open');
+        select.querySelector('.ggrid__select-toggle').setAttribute('aria-expanded', 'true');
+      }
+      this._announce('Please choose your size.');
+      return;
+    }
+    if (!state.variant.available) {
+      this._announce('Sorry, that option is sold out.');
       return;
     }
 
@@ -203,12 +209,22 @@ class GiftGuideGrid extends HTMLElement {
       items.push({ id: this.autoAdd.id, quantity: 1 });
     }
 
+    // Mirror Dawn: include the cart notification/drawer's sections in the request.
+    const cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer');
+    const sections = ['cart-icon-bubble'];
+    if (cart && typeof cart.getSectionsToRender === 'function') {
+      cart.getSectionsToRender().forEach((s) => {
+        if (s.id && sections.indexOf(s.id) === -1) sections.push(s.id);
+      });
+      if (typeof cart.setActiveElement === 'function') cart.setActiveElement(document.activeElement);
+    }
+
     atc.classList.add('is-loading');
     try {
       const res = await fetch(this.cartAddUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ items: items, sections: ['cart-icon-bubble'] }),
+        body: JSON.stringify({ items: items, sections: sections, sections_url: window.location.pathname }),
       });
       const json = await res.json();
       if (!res.ok || json.status) {
@@ -216,7 +232,17 @@ class GiftGuideGrid extends HTMLElement {
       }
 
       this._refreshCartBubble(json.sections);
-      // Let Dawn's cart notification / drawer / bubble react, like product-form.js does.
+      this.close();
+
+      // Trigger the theme's cart notification / drawer exactly like product-form.js.
+      if (cart && typeof cart.renderContents === 'function') {
+        if (json.items && json.key == null) json.key = json.items[0] && json.items[0].key;
+        try {
+          cart.renderContents(json);
+        } catch (e) {
+          /* notification is best-effort; the item is already in the cart */
+        }
+      }
       if (typeof publish === 'function' && window.PUB_SUB_EVENTS && window.PUB_SUB_EVENTS.cartUpdate) {
         publish(window.PUB_SUB_EVENTS.cartUpdate, {
           source: 'gift-guide-grid',
@@ -226,7 +252,6 @@ class GiftGuideGrid extends HTMLElement {
       }
       const extra = items.length > 1 ? ' The ' + this.autoAdd.title + ' was added too.' : '';
       this._announce('Added to your cart.' + extra);
-      this.close();
     } catch (err) {
       this._announce('Sorry, something went wrong. Please try again.');
       if (window.console) console.error('[GiftGuideGrid]', err);

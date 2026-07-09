@@ -54,7 +54,9 @@
           {%- if oname contains 'color' or oname contains 'colour' -%}
             <div class="ggrid__opt ggrid__opt--swatch">
               <span class="ggrid__opt-label" id="{{ popup_id }}-optlabel-{{ option.position }}">{{ option.name | escape }}</span>
-              <div class="ggrid__swatches" role="radiogroup" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}">
+              <div class="ggrid__swatches" role="radiogroup" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}" style="--count: {{ option.values.size }};">
+                {%- comment -%} sliding black indicator moves under the selected swatch {%- endcomment -%}
+                <span class="ggrid__swatch-indicator" aria-hidden="true"></span>
                 {%- for value in option.values -%}
                   <button
                     type="button"

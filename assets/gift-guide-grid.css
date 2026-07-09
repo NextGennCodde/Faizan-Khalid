@@ -111,7 +111,8 @@
   position: absolute;
   inset: 0;
   /* design shows no dark dim — transparent layer just captures outside clicks */
-  background: transparent;
+  background: #00000026;
+   transition: opacity 0.2s ease, transform 0.2s ease , background 0.2s ease;
 }
 
 .ggrid__card {
@@ -219,18 +220,42 @@
 
 /* Swatch row */
 .ggrid__swatches {
+  position: relative;
   display: flex;
   border: 0.5px solid #000;
   height: 40px;
+  overflow: hidden;
+  --count: 2;
+  --sel-index: 0;
+}
+
+/* the black active background that slides smoothly between options */
+.ggrid__swatch-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% / var(--count));
+  background: #000;
+  transform: translateX(calc(var(--sel-index) * 100%));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  z-index: 0;
+}
+
+.ggrid__swatches.is-selected .ggrid__swatch-indicator {
+  opacity: 1;
 }
 
 .ggrid__swatch {
+  position: relative;
+  z-index: 1; /* sit above the sliding indicator */
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: flex-start; /* labels left-aligned, per the Figma */
   gap: 10px;
-  padding: 0px;
+  padding: 0 16px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -241,23 +266,22 @@
   letter-spacing: -0.36px;
   text-transform: capitalize;
   color: #000;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: color 0.35s ease;
 }
 
 .ggrid__swatch + .ggrid__swatch {
   border-left: 0.5px solid #000;
 }
 
-/* selected colour fills black with white text (Figma Component 208/209 toggle) */
+/* selected label turns white (the black fill is the sliding indicator behind) */
 .ggrid__swatch[aria-checked='true'] {
-  background: #000;
   color: #fff;
 }
 
 /* tall thin colour bar at the start of each segment */
 .ggrid__swatch-chip {
   width: 6px;
-  height: 100%;
+  height: 26px;
   flex: none;
   border: 0.5px solid rgba(0, 0, 0, 0.15);
   display: inline-block;
