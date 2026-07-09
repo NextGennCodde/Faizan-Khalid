@@ -301,10 +301,10 @@
   .gift-banner__content {
     position: absolute;
     top: 55%;
-    left: clamp(20px, 4.65vw, 67px); /* 67 / 1440 */
+    left: clamp(20px, 3.5vw, 67px); /* 67 / 1440 */
     text-align: left;
     padding: 0;
-    max-width: 483px;
+    max-width: 520px;
     margin: 0;
     z-index: 2;
   }
@@ -319,7 +319,7 @@
   .gift-banner__desc {
     display: none;
     margin: 0 0 50px;
-    max-width: 483px;
+    max-width: 520px;
     font-size: 20px;
     line-height: 1.4;
   }
