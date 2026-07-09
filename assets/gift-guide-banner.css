@@ -278,7 +278,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: auto;
+    height: 50%;
     z-index: 1;
   }
 
@@ -288,7 +288,7 @@
     right: 0;
     bottom: 0;
     width: 61.8%; /* 890 / 1440 */
-    height: auto;
+    height: 50%;
     z-index: 1;
   }
 
@@ -300,7 +300,7 @@
      heading top = frame y425 - 64px top bar = 361px from the hero top. */
   .gift-banner__content {
     position: absolute;
-    top: 361px;
+    top: 55%;
     left: clamp(20px, 4.65vw, 67px); /* 67 / 1440 */
     text-align: left;
     padding: 0;
