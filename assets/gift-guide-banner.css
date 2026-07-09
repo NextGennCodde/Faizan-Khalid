@@ -104,6 +104,13 @@
   color: #000;
 }
 
+/* richtext emits an inner <p>; strip its default margins and let it inherit type */
+.gift-banner__desc p {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
 .gift-banner__desc--desktop {
   display: none;
 }
@@ -253,11 +260,10 @@
     color: #000;
   }
 
-  /* Hero becomes a fixed-height stage with absolute art + overlaid content */
+  /* Hero is a fixed 780px stage (Figma frame 1957) with absolute art + content */
   .gift-banner__hero {
-    min-height: 780px;
-    display: flex;
-    align-items: center;
+    height: 780px;
+    min-height: 0;
   }
 
   .gift-banner__art--mobile {
@@ -288,11 +294,16 @@
     margin-top: 0;
   }
 
+  /* Content sits over the white space on the left, anchored to Figma coords:
+     heading top = frame y425 - 64px top bar = 361px from the hero top. */
   .gift-banner__content {
+    position: absolute;
+    top: 361px;
+    left: clamp(20px, 4.65vw, 67px); /* 67 / 1440 */
     text-align: left;
     padding: 0;
-    max-width: 520px;
-    margin-left: clamp(20px, 4.65vw, 67px); /* 67 / 1440 */
+    max-width: 483px;
+    margin: 0;
     z-index: 2;
   }
 
@@ -300,6 +311,7 @@
     font-size: 70px;
     line-height: 1;
     margin: 0 0 40px;
+    white-space: nowrap; /* keep "The Gift Guide" on one line as in the design */
   }
 
   .gift-banner__desc {
