@@ -43,9 +43,15 @@
 
     {%- if product.has_only_default_variant == false -%}
       <div class="ggrid__options">
+        {%- comment -%}
+          Render by option NAME, not order: "Colour" always shows as the swatch
+          row (top), everything else (Size, etc.) as a dropdown below — matching
+          the Figma regardless of the product's option order (products in this
+          store are Size then Colour).
+        {%- endcomment -%}
         {%- for option in product.options_with_values -%}
-          {%- if forloop.first -%}
-            {%- comment -%} First option → swatch row {%- endcomment -%}
+          {%- assign oname = option.name | downcase -%}
+          {%- if oname contains 'color' or oname contains 'colour' -%}
             <div class="ggrid__opt ggrid__opt--swatch">
               <span class="ggrid__opt-label" id="{{ popup_id }}-optlabel-{{ option.position }}">{{ option.name | escape }}</span>
               <div class="ggrid__swatches" role="radiogroup" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}">
@@ -65,8 +71,12 @@
                 {%- endfor -%}
               </div>
             </div>
-          {%- else -%}
-            {%- comment -%} Further options → custom dropdown {%- endcomment -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- for option in product.options_with_values -%}
+          {%- assign oname = option.name | downcase -%}
+          {%- unless oname contains 'color' or oname contains 'colour' -%}
             <div class="ggrid__opt ggrid__opt--select">
               <span class="ggrid__opt-label" id="{{ popup_id }}-optlabel-{{ option.position }}">{{ option.name | escape }}</span>
               <div class="ggrid__select" data-ggrid-select data-option-position="{{ option.position }}">
@@ -77,10 +87,10 @@
                   aria-expanded="false"
                   aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}"
                 >
-                  <span class="ggrid__select-value" data-ggrid-select-value>Choose your {{ option.name | downcase | escape }}</span>
+                  <span class="ggrid__select-value ggrid__select-value--placeholder" data-ggrid-select-value>Choose your {{ option.name | downcase | escape }}</span>
                   <span class="ggrid__select-caret">{%- render 'gift-grid-icon', icon: 'chevron' -%}</span>
                 </button>
-                <ul class="ggrid__select-list" role="listbox" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}" hidden>
+                <ul class="ggrid__select-list" role="listbox" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}">
                   {%- for value in option.values -%}
                     <li
                       class="ggrid__select-option"
@@ -93,7 +103,7 @@
                 </ul>
               </div>
             </div>
-          {%- endif -%}
+          {%- endunless -%}
         {%- endfor -%}
       </div>
     {%- endif -%}

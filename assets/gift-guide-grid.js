@@ -59,47 +59,77 @@ class GiftGuideGrid extends HTMLElement {
       });
     });
 
-    // Custom dropdown options
+    // Custom dropdown options (animated open/close via the `is-open` class)
     popup.querySelectorAll('[data-ggrid-select]').forEach((select) => {
       const toggle = select.querySelector('.ggrid__select-toggle');
-      const list = select.querySelector('.ggrid__select-list');
       const valueEl = select.querySelector('[data-ggrid-select-value]');
       const pos = select.dataset.optionPosition;
 
-      const closeList = () => {
-        list.hidden = true;
-        toggle.setAttribute('aria-expanded', 'false');
+      const setOpen = (open) => {
+        select.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
       };
 
       toggle.addEventListener('click', () => {
-        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-        // close any other open dropdowns in this popup first
-        popup.querySelectorAll('.ggrid__select-list').forEach((l) => {
-          if (l !== list) l.hidden = true;
+        const willOpen = !select.classList.contains('is-open');
+        // close any other open dropdown in this popup first
+        popup.querySelectorAll('[data-ggrid-select].is-open').forEach((s) => {
+          if (s !== select) {
+            s.classList.remove('is-open');
+            s.querySelector('.ggrid__select-toggle').setAttribute('aria-expanded', 'false');
+          }
         });
-        popup.querySelectorAll('.ggrid__select-toggle').forEach((t) => {
-          if (t !== toggle) t.setAttribute('aria-expanded', 'false');
-        });
-        list.hidden = isOpen;
-        toggle.setAttribute('aria-expanded', String(!isOpen));
+        setOpen(willOpen);
       });
 
-      list.querySelectorAll('.ggrid__select-option').forEach((option) => {
+      select.querySelectorAll('.ggrid__select-option').forEach((option) => {
         option.addEventListener('click', () => {
-          list
+          select
             .querySelectorAll('.ggrid__select-option')
             .forEach((o) => o.setAttribute('aria-selected', String(o === option)));
           valueEl.textContent = option.dataset.value;
+          valueEl.classList.remove('ggrid__select-value--placeholder');
           state.selections[pos] = option.dataset.value;
-          closeList();
+          setOpen(false);
           this._resolve(popup);
         });
       });
     });
 
+    // Pre-select any option that has only one possible value (keeps ATC usable).
+    this._preselectSingles(popup, state);
+
     // Add to cart
     const atc = popup.querySelector('[data-ggrid-atc]');
     if (atc) atc.addEventListener('click', () => this._addToCart(popup));
+  }
+
+  // Auto-select options that resolve to a single value, and reflect it in the UI.
+  _preselectSingles(popup, state) {
+    const count = state.data.optionCount || 0;
+    for (let i = 1; i <= count; i++) {
+      const distinct = [];
+      state.data.variants.forEach((v) => {
+        if (distinct.indexOf(v.options[i - 1]) === -1) distinct.push(v.options[i - 1]);
+      });
+      if (distinct.length !== 1) continue;
+      const value = distinct[0];
+      state.selections[i] = value;
+
+      popup
+        .querySelectorAll('[data-ggrid-swatch][data-option-position="' + i + '"]')
+        .forEach((s) => s.setAttribute('aria-checked', String(s.dataset.value === value)));
+
+      const select = popup.querySelector('[data-ggrid-select][data-option-position="' + i + '"]');
+      if (select) {
+        const valueEl = select.querySelector('[data-ggrid-select-value]');
+        if (valueEl) {
+          valueEl.textContent = value;
+          valueEl.classList.remove('ggrid__select-value--placeholder');
+        }
+      }
+    }
+    this._resolve(popup);
   }
 
   /* ---------- Variant resolution ---------- */
@@ -150,8 +180,11 @@ class GiftGuideGrid extends HTMLElement {
     const items = [{ id: state.variant.id, quantity: 1 }];
 
     // Business rule: Black + Medium => also add the auto-add product.
-    const values = Object.values(state.selections).map((v) => String(v).toLowerCase());
-    if (values.includes('black') && values.includes('medium') && this.autoAdd && this.autoAdd.available) {
+    // Store sizes use "M" for Medium, so accept both "medium" and "m".
+    const values = Object.values(state.selections).map((v) => String(v).trim().toLowerCase());
+    const hasBlack = values.includes('black');
+    const hasMedium = values.includes('medium') || values.includes('m');
+    if (hasBlack && hasMedium && this.autoAdd && this.autoAdd.available) {
       items.push({ id: this.autoAdd.id, quantity: 1 });
     }
 
@@ -235,8 +268,16 @@ class GiftGuideGrid extends HTMLElement {
   }
 
   _onDocClick(event) {
+    if (!this.activePopup) return;
+    // close any open size dropdown when clicking elsewhere
+    if (!event.target.closest('[data-ggrid-select]')) {
+      this.activePopup.querySelectorAll('[data-ggrid-select].is-open').forEach((s) => {
+        s.classList.remove('is-open');
+        s.querySelector('.ggrid__select-toggle').setAttribute('aria-expanded', 'false');
+      });
+    }
     // outside click = click landing on the transparent overlay
-    if (this.activePopup && event.target.classList.contains('ggrid__overlay')) {
+    if (event.target.classList.contains('ggrid__overlay')) {
       this.close();
     }
   }
