@@ -1,9 +1,4 @@
-{%- comment -%} Jost (300/400/500) + Lustria for the grid heading and popup price {%- endcomment -%}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lustria&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lustria&display=swap"></noscript>
-
+{%- comment -%} Fonts (Jost + Lustria) are loaded once in layout/theme.liquid. {%- endcomment -%}
 {{ 'gift-guide-grid.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'gift-guide-grid.js' | asset_url }}" defer="defer"></script>
 
@@ -53,7 +48,7 @@
         {%- else -%}
           <div class="ggrid__tile-img ggrid__tile-img--placeholder">
             {{ 'product-apparel-1' | placeholder_svg_tag: 'ggrid__placeholder' }}
-          </div>
+          </div> 
         {%- endif -%}
 
         {%- if product != blank -%}

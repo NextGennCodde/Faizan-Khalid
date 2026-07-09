@@ -1,9 +1,4 @@
-{%- comment -%} Jost is the design font; loaded with swap so text renders immediately on the theme font. {%- endcomment -%}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap"></noscript>
-
+{%- comment -%} Fonts (Jost + Lustria) are loaded once in layout/theme.liquid. {%- endcomment -%}
 {{ 'gift-guide-banner.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'gift-guide-banner.js' | asset_url }}" defer="defer"></script>
 
