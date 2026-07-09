@@ -222,10 +222,12 @@ class GiftGuideGrid extends HTMLElement {
       this._announce('Please choose your size.');
       return;
     }
+    // Note: we do NOT block on state.variant.available here — the button stays
+    // active (per the Figma) and we let Shopify's Ajax API be the source of
+    // truth. If a variant is genuinely unpurchasable, /cart/add.js returns a
+    // 422 and the catch block surfaces the message.
     if (!state.variant.available) {
-      console.warn('[GiftGuideGrid] resolved variant is unavailable', state.variant);
-      this._announce('Sorry, that option is sold out.');
-      return;
+      console.warn('[GiftGuideGrid] variant reports available:false — attempting anyway', state.variant);
     }
 
     const items = [{ id: state.variant.id, quantity: 1 }];
