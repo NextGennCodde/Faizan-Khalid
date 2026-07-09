@@ -22,6 +22,7 @@
         "description_mobile": "<p>Discover Joy: Your Ultimate Holiday Gift Destination.</p>",
         "shop_label": "Shop Now",
         "shop_link": "",
+        "hero_image_mobile": "shopify://shop_images/Frame.svg",
         "strip_text": "Sustainable, ethically made clothes in sizes XXS to 6XL",
         "strip_text_mobile": "Sustainable, ethically made activewear"
       }
