@@ -63,7 +63,7 @@
             style="--hx: {{ block.settings.hotspot_horizontal }}%; --hy: {{ block.settings.hotspot_vertical }}%;"
             aria-haspopup="dialog"
             aria-controls="{{ popup_id }}"
-            aria-label="{{ 'products.product.view_product' | t | default: 'Quick view' }}: {{ product.title | escape }}"
+            aria-label="Quick view: {{ product.title | escape }}"
           >
             {%- render 'gift-grid-icon', icon: 'plus' -%}
           </button>

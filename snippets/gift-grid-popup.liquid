@@ -77,7 +77,7 @@
                   aria-expanded="false"
                   aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}"
                 >
-                  <span class="ggrid__select-value" data-ggrid-select-value>{{ 'products.product.choose' | t | default: 'Choose your' }} {{ option.name | downcase | escape }}</span>
+                  <span class="ggrid__select-value" data-ggrid-select-value>Choose your {{ option.name | downcase | escape }}</span>
                   <span class="ggrid__select-caret">{%- render 'gift-grid-icon', icon: 'chevron' -%}</span>
                 </button>
                 <ul class="ggrid__select-list" role="listbox" aria-labelledby="{{ popup_id }}-optlabel-{{ option.position }}" hidden>
