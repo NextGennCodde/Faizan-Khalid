@@ -230,9 +230,18 @@ class GiftGuideGrid extends HTMLElement {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ items: items, sections: sections, sections_url: window.location.pathname }),
       });
-      const json = await res.json();
+      // read as text first so we can surface the real reason even on odd responses
+      const raw = await res.text();
+      let json = {};
+      try {
+        json = JSON.parse(raw);
+      } catch (e) {
+        /* non-JSON error body */
+      }
       if (!res.ok || json.status) {
-        throw new Error(json.description || json.message || 'Cart add failed: ' + res.status);
+        throw new Error(
+          json.description || json.message || 'Cart error ' + res.status + ': ' + raw.slice(0, 200)
+        );
       }
 
       this._refreshCartBubble(json.sections);
