@@ -113,6 +113,7 @@
     <button type="button" class="ggrid__atc" data-ggrid-atc>
       <span class="ggrid__atc-label" data-ggrid-atc-label>{{ 'products.product.add_to_cart' | t | default: 'Add to cart' }}</span>
       {%- render 'gift-grid-icon', icon: 'cart-arrow' -%}
+      {%- render 'gift-grid-icon', icon: 'check' -%}
     </button>
 
     {%- comment -%} Variant matrix for JS resolution {%- endcomment -%}

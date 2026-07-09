@@ -417,7 +417,7 @@
   font-size: 16px;
   line-height: 20.48px;
   letter-spacing: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.3s ease;
 }
 
 .ggrid__atc .gg-icon--cart-arrow {
@@ -431,14 +431,35 @@
   color: currentColor;
 }
 
+/* checkmark shown only in the "added" state */
+.ggrid__atc .gg-icon--check {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 13px;
+  display: none;
+  color: currentColor;
+}
+
 .ggrid__atc[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* brief "Added to cart" confirmation state */
+/* "Added to cart" confirmation: green fill, checkmark instead of the arrow */
 .ggrid__atc.is-added {
+  background: #1e8e3e;
   cursor: default;
+}
+
+.ggrid__atc.is-added .gg-icon--cart-arrow {
+  display: none;
+}
+
+.ggrid__atc.is-added .gg-icon--check {
+  display: block;
 }
 
 .ggrid__atc.is-loading {

@@ -266,7 +266,7 @@ class GiftGuideGrid extends HTMLElement {
         }
         if (label) label.textContent = prevLabel;
         atc.classList.remove('is-added');
-      }, 900);
+      }, 1500);
     } catch (err) {
       this._announce((err && err.message) || 'Sorry, something went wrong. Please try again.');
       if (window.console) console.error('[GiftGuideGrid] add to cart failed', err, { items: items });
