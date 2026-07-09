@@ -72,23 +72,24 @@
     {%- if top_art -%}
       <img class="gift-banner__art gift-banner__art--desktop-top" src="{{ top_art | image_url: width: 1440 }}" srcset="{{ top_art | image_url: width: 1440 }} 1440w, {{ top_art | image_url: width: 2880 }} 2880w" sizes="100vw" width="{{ top_art.width }}" height="{{ top_art.height }}" alt="" loading="lazy">
     {%- else -%}
-      <img class="gift-banner__art gift-banner__art--desktop-top" src="{{ 'gift-guide-hero-top.png' | asset_url }}" width="1440" height="390" alt="" loading="lazy">
+      <img class="gift-banner__art gift-banner__art--desktop-top" src="{{ 'gift-guide-hero-top.svg' | asset_url }}" width="1440" height="390" alt="" loading="lazy">
     {%- endif -%}
 
     {%- if bottom_art -%}
       <img class="gift-banner__art gift-banner__art--desktop-bottom" src="{{ bottom_art | image_url: width: 890 }}" srcset="{{ bottom_art | image_url: width: 890 }} 890w, {{ bottom_art | image_url: width: 1780 }} 1780w" sizes="62vw" width="{{ bottom_art.width }}" height="{{ bottom_art.height }}" alt="" loading="lazy">
     {%- else -%}
-      <img class="gift-banner__art gift-banner__art--desktop-bottom" src="{{ 'gift-guide-hero-bottom.png' | asset_url }}" width="890" height="402" alt="" loading="lazy">
+      <img class="gift-banner__art gift-banner__art--desktop-bottom" src="{{ 'gift-guide-hero-bottom.svg' | asset_url }}" width="890" height="402" alt="" loading="lazy">
     {%- endif -%}
 
     <div class="gift-banner__content">
       <h1 class="gift-banner__heading">{{ section.settings.heading | escape }}</h1>
 
+      {%- comment -%} richtext already emits its own <p>, so wrap in a div (not <p>) to avoid invalid nested paragraphs {%- endcomment -%}
       {%- if section.settings.description != blank -%}
-        <p class="gift-banner__desc gift-banner__desc--desktop">{{ section.settings.description }}</p>
+        <div class="gift-banner__desc gift-banner__desc--desktop">{{ section.settings.description }}</div>
       {%- endif -%}
       {%- if section.settings.description_mobile != blank -%}
-        <p class="gift-banner__desc gift-banner__desc--mobile">{{ section.settings.description_mobile }}</p>
+        <div class="gift-banner__desc gift-banner__desc--mobile">{{ section.settings.description_mobile }}</div>
       {%- endif -%}
 
       {%- comment -%} On mobile the CTA is overlaid on the illustration; on desktop it flows below the copy {%- endcomment -%}
