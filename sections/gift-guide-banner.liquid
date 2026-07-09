@@ -5,6 +5,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap"></noscript>
 
 {{ 'gift-guide-banner.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'gift-guide-banner.js' | asset_url }}" defer="defer"></script>
 
 {%- comment -%}
   Gift Guide Banner (Figma Frame 1957)
@@ -28,11 +29,19 @@
   {%- comment -%} ---------- Top bar / mobile header ---------- {%- endcomment -%}
   <div class="gift-banner__bar">
     {%- if section.settings.show_hamburger -%}
-      <button type="button" class="gift-banner__hamburger" aria-label="{{ 'sections.header.menu' | t | default: 'Menu' }}">
-        <svg viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-          <line x1="0" y1="1" x2="18" y2="1" stroke="currentColor" stroke-width="1.5" />
-          <line x1="0" y1="9" x2="18" y2="9" stroke="currentColor" stroke-width="1.5" />
-        </svg>
+      <button
+        type="button"
+        class="gift-banner__hamburger"
+        aria-label="{{ 'sections.header.menu' | t | default: 'Menu' }}"
+        aria-expanded="false"
+        aria-controls="gift-banner-menu-{{ section.id }}"
+      >
+        {%- comment -%} three bars that morph into an X when expanded (CSS-driven) {%- endcomment -%}
+        <span class="gift-banner__bars" aria-hidden="true">
+          <span class="gift-banner__bar-line"></span>
+          <span class="gift-banner__bar-line"></span>
+          <span class="gift-banner__bar-line"></span>
+        </span>
       </button>
     {%- endif -%}
 
@@ -65,6 +74,27 @@
       </a>
     {%- endif -%}
   </div>
+
+  {%- comment -%}
+    ---------- Mobile dropdown (Figma Group 1000008120) ----------
+    Revealed by the hamburger. Holds its own message + the CHOOSE GIFT button.
+    Hidden entirely on desktop, where those live in the top bar instead.
+  {%- endcomment -%}
+  {%- if section.settings.show_hamburger -%}
+    <div class="gift-banner__menu" id="gift-banner-menu-{{ section.id }}">
+      <div class="gift-banner__menu-inner">
+        {%- if section.settings.menu_message != blank -%}
+          <p class="gift-banner__menu-message">{{ section.settings.menu_message | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.choose_label != blank -%}
+          <a href="{{ section.settings.choose_link | default: '#' }}" class="gift-banner__btn gift-banner__choose gift-banner__menu-choose">
+            <span>{{ section.settings.choose_label | escape }}</span>
+            {%- render 'gift-banner-arrow' -%}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
 
   {%- comment -%} ---------- Hero ---------- {%- endcomment -%}
   <div class="gift-banner__hero">
@@ -160,7 +190,13 @@
     {
       "type": "url",
       "id": "choose_link",
-      "label": "Button link (desktop)"
+      "label": "Button link"
+    },
+    {
+      "type": "text",
+      "id": "menu_message",
+      "label": "Mobile dropdown message",
+      "default": "Get started with your “Mi Solo” kit"
     },
     {
       "type": "header",
