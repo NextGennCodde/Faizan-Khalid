@@ -253,8 +253,8 @@ class GiftGuideGrid extends HTMLElement {
       const extra = items.length > 1 ? ' The ' + this.autoAdd.title + ' was added too.' : '';
       this._announce('Added to your cart.' + extra);
     } catch (err) {
-      this._announce('Sorry, something went wrong. Please try again.');
-      if (window.console) console.error('[GiftGuideGrid]', err);
+      this._announce((err && err.message) || 'Sorry, something went wrong. Please try again.');
+      if (window.console) console.error('[GiftGuideGrid] add to cart failed', err, { items: items });
     } finally {
       atc.classList.remove('is-loading');
     }
@@ -282,6 +282,9 @@ class GiftGuideGrid extends HTMLElement {
     // next frame so the CSS transition runs from the hidden state
     requestAnimationFrame(() => popup.classList.add('is-open'));
 
+    // lock page scroll while the popup is open
+    document.documentElement.classList.add('ggrid-no-scroll');
+
     document.addEventListener('keydown', this._onKeydown);
     document.addEventListener('click', this._onDocClick, true);
 
@@ -296,7 +299,11 @@ class GiftGuideGrid extends HTMLElement {
     document.removeEventListener('keydown', this._onKeydown);
     document.removeEventListener('click', this._onDocClick, true);
 
+    // restore page scroll
+    document.documentElement.classList.remove('ggrid-no-scroll');
+
     const finish = () => {
+      if (popup.classList.contains('is-open')) return; // re-opened during the wait
       popup.hidden = true;
       popup.removeEventListener('transitionend', finish);
     };

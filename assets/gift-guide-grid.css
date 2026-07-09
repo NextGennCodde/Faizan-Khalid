@@ -93,6 +93,11 @@
 /* ===================================================================
  * Popup
  * =================================================================== */
+/* lock page scroll while a popup is open */
+.ggrid-no-scroll {
+  overflow: hidden;
+}
+
 .ggrid__popup {
   position: fixed;
   inset: 0;
@@ -110,9 +115,13 @@
 .ggrid__overlay {
   position: absolute;
   inset: 0;
-  /* design shows no dark dim — transparent layer just captures outside clicks */
-  background: #00000026;
-   transition: opacity 0.2s ease, transform 0.2s ease , background 0.2s ease;
+  background: #00000026; /* light dim; also captures outside clicks */
+  opacity: 0; /* fade in/out with the popup */
+  transition: opacity 0.2s ease;
+}
+
+.ggrid__popup.is-open .ggrid__overlay {
+  opacity: 1;
 }
 
 .ggrid__card {
@@ -255,7 +264,7 @@
   align-items: center;
   justify-content: flex-start; /* labels left-aligned, per the Figma */
   gap: 10px;
-  padding: 0 16px;
+  padding: 0px;
   border: 0;
   background: none;
   cursor: pointer;
@@ -281,7 +290,7 @@
 /* tall thin colour bar at the start of each segment */
 .ggrid__swatch-chip {
   width: 6px;
-  height: 26px;
+  height: 100%;
   flex: none;
   border: 0.5px solid rgba(0, 0, 0, 0.15);
   display: inline-block;
