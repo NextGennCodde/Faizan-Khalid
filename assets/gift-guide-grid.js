@@ -27,14 +27,25 @@ class GiftGuideGrid extends HTMLElement {
     this._onKeydown = this._onKeydown.bind(this);
     this._onDocClick = this._onDocClick.bind(this);
 
-    this.querySelectorAll('.ggrid__hotspot').forEach((btn) => {
+    const hotspots = this.querySelectorAll('.ggrid__hotspot');
+    const popups = this.querySelectorAll('.ggrid__popup');
+    console.log('[GiftGuideGrid] connected', {
+      id: this.id,
+      cartAddUrl: this.cartAddUrl,
+      hotspots: hotspots.length,
+      popups: popups.length,
+      autoAdd: this.autoAdd,
+    });
+
+    hotspots.forEach((btn) => {
       btn.addEventListener('click', () => {
         const popup = document.getElementById(btn.getAttribute('aria-controls'));
+        console.log('[GiftGuideGrid] hotspot clicked ->', btn.getAttribute('aria-controls'), !!popup);
         if (popup) this.open(popup, btn);
       });
     });
 
-    this.querySelectorAll('.ggrid__popup').forEach((popup) => this._setupPopup(popup));
+    popups.forEach((popup) => this._setupPopup(popup));
   }
 
   /* ---------- Popup wiring ---------- */
@@ -42,6 +53,10 @@ class GiftGuideGrid extends HTMLElement {
     const data = this._readJSON(popup.querySelector('[data-ggrid-product]')) || { variants: [] };
     const state = { data: data, selections: {}, variant: null };
     popup._gg = state;
+    console.log('[GiftGuideGrid] popup setup', popup.id, {
+      variantCount: (data.variants || []).length,
+      firstVariant: (data.variants || [])[0],
+    });
 
     popup.querySelectorAll('[data-ggrid-close]').forEach((el) =>
       el.addEventListener('click', () => this.close())
@@ -100,7 +115,17 @@ class GiftGuideGrid extends HTMLElement {
 
     // Add to cart
     const atc = popup.querySelector('[data-ggrid-atc]');
-    if (atc) atc.addEventListener('click', () => this._addToCart(popup));
+    if (atc) {
+      atc.addEventListener('click', () => {
+        console.log('[GiftGuideGrid] ADD TO CART clicked', {
+          selections: { ...state.selections },
+          resolvedVariant: state.variant,
+        });
+        this._addToCart(popup);
+      });
+    } else {
+      console.warn('[GiftGuideGrid] no [data-ggrid-atc] button found in popup', popup.id);
+    }
   }
 
   // Select a colour swatch: move the sliding indicator + update state.
@@ -185,6 +210,10 @@ class GiftGuideGrid extends HTMLElement {
 
     // Not all options chosen yet → nudge the shopper to the size dropdown.
     if (!state.variant) {
+      console.warn('[GiftGuideGrid] no variant resolved — nudging size dropdown', {
+        selections: { ...state.selections },
+        variants: state.data && state.data.variants,
+      });
       const select = popup.querySelector('[data-ggrid-select]:not(.is-open)');
       if (select) {
         select.classList.add('is-open');
@@ -194,6 +223,7 @@ class GiftGuideGrid extends HTMLElement {
       return;
     }
     if (!state.variant.available) {
+      console.warn('[GiftGuideGrid] resolved variant is unavailable', state.variant);
       this._announce('Sorry, that option is sold out.');
       return;
     }
@@ -219,14 +249,18 @@ class GiftGuideGrid extends HTMLElement {
       if (typeof cart.setActiveElement === 'function') cart.setActiveElement(document.activeElement);
     }
 
+    const payload = { items: items, sections: sections, sections_url: window.location.pathname };
+    console.log('[GiftGuideGrid] POST', this.cartAddUrl, payload);
+
     atc.classList.add('is-loading');
     try {
       const res = await fetch(this.cartAddUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ items: items, sections: sections, sections_url: window.location.pathname }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
+      console.log('[GiftGuideGrid] response', res.status, json);
       if (!res.ok || json.status) {
         throw new Error(json.description || json.message || 'Cart add failed: ' + res.status);
       }
