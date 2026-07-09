@@ -104,9 +104,16 @@ class GiftGuideGrid extends HTMLElement {
     if (atc) atc.addEventListener('click', () => this._addToCart(popup));
   }
 
+  // Number of options, derived from the actual variant data (robust even if the
+  // Liquid-provided optionCount is missing).
+  _optionCount(state) {
+    const variants = (state.data && state.data.variants) || [];
+    return variants.length ? variants[0].options.length : state.data.optionCount || 0;
+  }
+
   // Auto-select options that resolve to a single value, and reflect it in the UI.
   _preselectSingles(popup, state) {
-    const count = state.data.optionCount || 0;
+    const count = this._optionCount(state);
     for (let i = 1; i <= count; i++) {
       const distinct = [];
       state.data.variants.forEach((v) => {
@@ -135,27 +142,35 @@ class GiftGuideGrid extends HTMLElement {
   /* ---------- Variant resolution ---------- */
   _resolve(popup) {
     const state = popup._gg;
-    const data = state.data;
+    const variants = (state.data && state.data.variants) || [];
     const atc = popup.querySelector('[data-ggrid-atc]');
     const label = popup.querySelector('[data-ggrid-atc-label]');
-    const count = data.optionCount || 0;
+    const count = this._optionCount(state);
 
     const chosen = [];
     for (let i = 1; i <= count; i++) chosen.push(state.selections[i]);
-    const complete = chosen.every((v) => v != null);
+    const complete = count > 0 && chosen.every((v) => v != null);
 
-    state.variant = complete
-      ? data.variants.find((v) => v.options.every((opt, i) => opt === chosen[i])) || null
-      : null;
+    if (count === 0) {
+      // product with no options → its single variant
+      state.variant = variants[0] || null;
+    } else if (complete) {
+      state.variant =
+        variants.find((v) => v.options.every((opt, i) => String(opt) === String(chosen[i]))) || null;
+    } else {
+      state.variant = null;
+    }
 
     if (state.variant && state.variant.priceFormatted) {
       const price = popup.querySelector('[data-ggrid-price]');
       if (price) price.innerHTML = state.variant.priceFormatted;
     }
 
-    if (!complete) {
+    if (count > 0 && !complete) {
       this._setAtc(atc, label, true, 'Select options');
-    } else if (!state.variant || !state.variant.available) {
+    } else if (!state.variant) {
+      this._setAtc(atc, label, true, 'Unavailable');
+    } else if (!state.variant.available) {
       this._setAtc(atc, label, true, 'Sold out');
     } else {
       this._setAtc(atc, label, false, 'Add to cart');
@@ -195,10 +210,20 @@ class GiftGuideGrid extends HTMLElement {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ items: items, sections: ['cart-icon-bubble'] }),
       });
-      if (!res.ok) throw new Error('Cart add failed: ' + res.status);
       const json = await res.json();
+      if (!res.ok || json.status) {
+        throw new Error(json.description || json.message || 'Cart add failed: ' + res.status);
+      }
 
       this._refreshCartBubble(json.sections);
+      // Let Dawn's cart notification / drawer / bubble react, like product-form.js does.
+      if (typeof publish === 'function' && window.PUB_SUB_EVENTS && window.PUB_SUB_EVENTS.cartUpdate) {
+        publish(window.PUB_SUB_EVENTS.cartUpdate, {
+          source: 'gift-guide-grid',
+          productVariantId: state.variant.id,
+          cartData: json,
+        });
+      }
       const extra = items.length > 1 ? ' The ' + this.autoAdd.title + ' was added too.' : '';
       this._announce('Added to your cart.' + extra);
       this.close();

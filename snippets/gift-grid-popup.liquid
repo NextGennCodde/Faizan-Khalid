@@ -118,7 +118,6 @@
       {
         "id": {{ product.id }},
         "title": {{ product.title | json }},
-        "optionCount": {{ product.options.size }},
         "variants": [
           {%- for v in product.variants -%}
             {"id": {{ v.id }}, "available": {{ v.available }}, "options": {{ v.options | json }}, "priceFormatted": {{ v.price | money | json }}}{%- unless forloop.last -%},{%- endunless -%}
