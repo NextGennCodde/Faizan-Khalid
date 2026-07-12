@@ -1,7 +1,7 @@
-# Ecomexperts Hiring Test — Gift Guide (Faizan Khalid)
+# Gift Guide — Custom Shopify Theme Sections (Faizan Khalid)
 
 A Shopify **Dawn**-based theme with two custom, **built-from-scratch** homepage
-sections implementing the provided Figma design. No Dawn ready-made sections or
+sections implementing a Figma design. No Dawn ready-made sections or
 components were reused for these two blocks, and all interactivity is **vanilla
 JavaScript (no jQuery)** — mobile-first, WCAG AA, and heavily commented.
 
